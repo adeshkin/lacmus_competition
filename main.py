@@ -7,6 +7,7 @@ import os
 import copy
 from dataset import LADDDataSET
 from augmentations import get_transform
+from metrics import evaluate_res
 
 
 def collate_fn(batch):
