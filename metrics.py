@@ -1,5 +1,5 @@
 import numpy as np
-from compute_overlap import compute_overlap
+from compute_overlaps_np import compute_overlap_np
 
 
 def _compute_ap(recall, precision):
@@ -30,10 +30,10 @@ def _compute_ap(recall, precision):
 
 
 def evaluate_res(
-    inference_res,
-    iou_threshold=0.5,
-    score_threshold=0.05,
-    max_detections=100
+        inference_res,
+        iou_threshold=0.5,
+        score_threshold=0.05,
+        max_detections=100
 ):
     """ Evaluate a given dataset using a given model.
     # Arguments
@@ -66,57 +66,57 @@ def evaluate_res(
     """
 
     false_positives = np.zeros((0,))
-    true_positives  = np.zeros((0,))
-    scores          = np.zeros((0,))
+    true_positives = np.zeros((0,))
+    scores = np.zeros((0,))
     num_annotations = 0.0
 
     for i in range(len(inference_res)):
-        detections           = inference_res[i][1][0]
-        annotations          = inference_res[i][0][0]
-        num_annotations     += inference_res[i][0][0]['labels'].shape[0]
+        detections = inference_res[i][1][0]
+        annotations = inference_res[i][0][0]
+        num_annotations += inference_res[i][0][0]['labels'].shape[0]
         detected_annotations = []
 
         for d in range(detections['labels'].shape[0]):
             if detections['scores'][d].numpy() > score_threshold:
                 scores = np.append(scores, detections['scores'][d].numpy())
 
-                if inference_res[i][0][0]['labels'].shape[0] == 0: # no objects was there
+                if inference_res[i][0][0]['labels'].shape[0] == 0:  # no objects was there
                     false_positives = np.append(false_positives, 1)
-                    true_positives  = np.append(true_positives, 0)
+                    true_positives = np.append(true_positives, 0)
                     continue
 
-                overlaps            = compute_overlap (np.expand_dims(detections['boxes'][d].numpy().astype(np.double),axis=0),annotations['boxes'].numpy().astype(np.double))
+                overlaps = compute_overlap_np(np.expand_dims(detections['boxes'][d].numpy().astype(np.double), axis=0),
+                                              annotations['boxes'].numpy().astype(np.double))
                 assigned_annotation = np.argmax(overlaps, axis=1)
-                max_overlap         = overlaps[0, assigned_annotation][0]
+                max_overlap = overlaps[0, assigned_annotation][0]
 
                 if max_overlap >= iou_threshold and assigned_annotation not in detected_annotations:
                     false_positives = np.append(false_positives, 0)
-                    true_positives  = np.append(true_positives, 1)
+                    true_positives = np.append(true_positives, 1)
                     detected_annotations.append(assigned_annotation)
                 else:
                     false_positives = np.append(false_positives, 1)
-                    true_positives  = np.append(true_positives, 0)
+                    true_positives = np.append(true_positives, 0)
 
     # F1@IoU
-    plain_recall = np.sum(true_positives)/num_annotations
-    plain_precision = np.sum(true_positives) / np.maximum(np.sum(true_positives) + np.sum(false_positives), np.finfo(np.float64).eps)
-    F1 = 2*plain_precision*plain_recall/(plain_precision+plain_recall)
-
+    plain_recall = np.sum(true_positives) / num_annotations
+    plain_precision = np.sum(true_positives) / np.maximum(np.sum(true_positives) + np.sum(false_positives),
+                                                          np.finfo(np.float64).eps)
+    F1 = 2 * plain_precision * plain_recall / (plain_precision + plain_recall)
 
     # sort by score
-    indices         = np.argsort(-scores)
+    indices = np.argsort(-scores)
     false_positives = false_positives[indices]
-    true_positives  = true_positives[indices]
+    true_positives = true_positives[indices]
 
     # compute false positives and true positives
     false_positives = np.cumsum(false_positives)
-    true_positives  = np.cumsum(true_positives)
+    true_positives = np.cumsum(true_positives)
     # compute recall and precision
-    recall    = true_positives / num_annotations
+    recall = true_positives / num_annotations
     precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
 
     # compute average precision
-    average_precision  = _compute_ap(recall, precision)
+    average_precision = _compute_ap(recall, precision)
 
-
-    return (average_precision, F1)
+    return average_precision, F1
