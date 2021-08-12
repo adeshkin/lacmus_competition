@@ -1,0 +1,13 @@
+project_name: 'lacmus_competition'
+data_root: '/home/cds-k/Desktop/lacmus/data_lacmus/TrainingData'
+train_mode: 'train' #train_non_empty
+val_mode: 'val' #valtest test
+target_size: (1500,2000)
+batch_size: 4
+lr: 0.001
+momentum: 0.9
+weight_decay: 0.0005
+step_size: 3
+gamma: 0.1
+num_epochs: 100
+checkpoints_dir: './checkpoints'

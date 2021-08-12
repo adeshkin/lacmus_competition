@@ -19,13 +19,13 @@ def collate_fn(batch):
 
 class Runner:
     def __init__(self, params):
-        voc_root = '/home/cds-k/Desktop/lacmus/data_lacmus/TrainingData'
+        voc_root = params['data_root']
 
         dataset_train = LADDDataSET(voc_root,
-                                    'train_non_empty',
+                                    params['train_mode'],
                                     get_transform(train=True, target_size=params['target_size']))
         dataset_val = LADDDataSET(voc_root,
-                                  'val',
+                                  params['val_mode'],
                                   get_transform(train=False, target_size=params['target_size']))
 
         self.data_loaders = {'train': torch.utils.data.DataLoader(dataset_train,
@@ -51,15 +51,14 @@ class Runner:
 
         self.optimizer = torch.optim.SGD(self.model.parameters(),
                                          lr=params['lr'],
-                                         momentum=0.9,
-                                         weight_decay=0.0005)
+                                         momentum=params['momentum'],
+                                         weight_decay=params['weight_decay'])
 
         self.lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                            step_size=3,
-                                                            gamma=0.1)
+                                                            step_size=params['step_size'],
+                                                            gamma=params['gamma'])
 
         self.num_epochs = params['num_epochs']
-
         self.checkpoints_dir = params['checkpoints_dir']
 
     def train(self):
