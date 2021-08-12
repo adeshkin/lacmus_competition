@@ -6,3 +6,4 @@ torch
 torchvision
 wandb
 pandas
+tqdm

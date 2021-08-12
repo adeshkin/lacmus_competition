@@ -5,6 +5,7 @@ import wandb
 import numpy as np
 import os
 import copy
+from tqdm import tqdm
 from dataset import LADDDataSET
 from augmentations import get_transform
 from metrics import evaluate_res
@@ -20,14 +21,17 @@ def collate_fn(batch):
 
 class Runner:
     def __init__(self, params):
+        self.params = params
         voc_root = params['data_root']
+        
+        target_size = (params['target_h'], params['target_w'])
 
         dataset_train = LADDDataSET(voc_root,
                                     params['train_mode'],
-                                    get_transform(train=True, target_size=params['target_size']))
+                                    get_transform(train=True, target_size=target_size))
         dataset_val = LADDDataSET(voc_root,
                                   params['val_mode'],
-                                  get_transform(train=False, target_size=params['target_size']))
+                                  get_transform(train=False, target_size=target_size))
 
         self.data_loaders = {'train': torch.utils.data.DataLoader(dataset_train,
                                                                   batch_size=params['batch_size'],
@@ -44,8 +48,8 @@ class Runner:
         self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False,
                                                                           num_classes=2,
                                                                           pretrained_backbone=True,
-                                                                          min_size=params['target_size'][0],
-                                                                          max_size=params['target_size'][1],
+                                                                          min_size=target_size[0],
+                                                                          max_size=target_size[1],
                                                                           trainable_backbone_layers=0)
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -68,7 +72,7 @@ class Runner:
         epoch_metrics = dict()
         epoch_metrics['loss'] = 0.0
 
-        for images, targets in self.data_loaders['train']:
+        for images, targets in tqdm(self.data_loaders['train']):
             images = list(image.to(self.device) for image in images)
             targets = [{k: v.to(self.device) for k, v in t.items()} for t in targets]
 
@@ -83,6 +87,7 @@ class Runner:
 
             epoch_metrics['loss'] += losses.cpu().detach()
 
+
         for m in epoch_metrics:
             epoch_metrics[m] = epoch_metrics[m] / len(self.data_loaders['train'])
 
@@ -95,7 +100,7 @@ class Runner:
         cpu_device = torch.device("cpu")
 
         with torch.no_grad():
-            for images, targets in self.data_loaders['val']:
+            for images, targets in tqdm(self.data_loaders['val']):
                 images = list(img.to(self.device) for img in images)
                 outputs = self.model(images)
 
@@ -103,24 +108,26 @@ class Runner:
                 res = targets, outputs
                 inference_res.append(res)
 
-        average_precision, F1 = evaluate_res(inference_res, iou_threshold=0.5, score_threshold=0.05)
-        average_precision, F1 = evaluate_res(inference_res, iou_threshold=0.6, score_threshold=0.05)
+        ap_iou0_5, f1_iou0_5 = evaluate_res(inference_res, iou_threshold=0.5, score_threshold=0.05)
+        ap_iou0_6, f1_iou0_6 = evaluate_res(inference_res, iou_threshold=0.6, score_threshold=0.05)
 
-        for m in epoch_metrics:
-            epoch_metrics[m] = epoch_metrics[m] / len(self.data_loaders['val'])
+        epoch_metrics['ap_iou0.5'] = ap_iou0_5
+        epoch_metrics['f1_iou0.5'] = f1_iou0_5
+        epoch_metrics['ap_iou0.6'] = ap_iou0_6
+        epoch_metrics['f1_iou0.6'] = f1_iou0_6
 
         log = None
 
         return epoch_metrics, log
 
     def run(self):
-        wandb.init(project=self.params['project_name'], params=self.params)
+        wandb.init(project=self.params['project_name'], config=self.params)
 
         np.random.seed(0)
         os.makedirs(self.checkpoints_dir, exist_ok=True)
 
         best_model_wts = copy.deepcopy(self.model.state_dict())
-        best_loss = 1e10
+        best_ap_iou0_5 = 1
 
         self.model = self.model.to(self.device)
 
@@ -133,9 +140,9 @@ class Runner:
                     'val': val_metrics}
             wandb.log(logs, step=epoch)
 
-            val_loss = val_metrics['loss']
-            if val_loss < best_loss:
-                best_loss = val_loss
+            val_ap_iou0_5 = val_metrics['ap_iou0.5']
+            if val_ap_iou0_5 < best_ap_iou0_5:
+                best_ap_iou0_5 = val_ap_iou0_5
                 best_model_wts = copy.deepcopy(self.model.state_dict())
 
                 # wandb.log({f"epoch = {epoch}": [wandb.Image(log['image'], caption=f"({log['dy']},{log['dx']})")]})

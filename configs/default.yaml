@@ -1,8 +1,9 @@
 project_name: 'lacmus_competition'
 data_root: '/home/cds-k/Desktop/lacmus/data_lacmus/TrainingData'
-train_mode: 'train' #train_non_empty
-val_mode: 'val' #valtest test
-target_size: (1500,2000)
+train_mode: 'train_non_empty' #train
+val_mode: 'valtest' #valtest test
+target_h: 500
+target_w: 750
 batch_size: 4
 lr: 0.001
 momentum: 0.9
