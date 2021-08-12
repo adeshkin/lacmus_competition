@@ -87,7 +87,6 @@ class Runner:
 
             epoch_metrics['loss'] += losses.cpu().detach()
 
-
         for m in epoch_metrics:
             epoch_metrics[m] = epoch_metrics[m] / len(self.data_loaders['train'])
 
@@ -122,7 +121,6 @@ class Runner:
 
     def run(self):
         wandb.init(project=self.params['project_name'], config=self.params)
-
         np.random.seed(0)
         os.makedirs(self.checkpoints_dir, exist_ok=True)
 
