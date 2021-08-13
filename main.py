@@ -135,6 +135,8 @@ class Runner:
         self.model.load_state_dict(torch.load(PATH))
         results = []
         for idx, img in self.data_loaders['test']:
+            print(idx)
+            print(img)
             #print(sample)
             #idx = sample['idx']
             #img = sample['img']
