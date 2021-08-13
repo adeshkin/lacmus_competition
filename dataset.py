@@ -17,15 +17,12 @@ class ImageFolderWithPaths(torch.utils.data.Dataset):
         return len(self.paths)
 
     def __getitem__(self, idx):
-        sample = dict()
         name = self.paths[idx][:-4]  # no extension
-        sample['idx'] = name
 
         img = Image.open(self.paths[idx]).convert('RGB')
         target = None
         if self.transforms is not None:
             img, target = self.transforms(img, target)
-        sample['img'] = img
 
         return img, name
 

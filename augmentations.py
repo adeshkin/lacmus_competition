@@ -54,7 +54,7 @@ def get_transform(train, target_size):
     transforms = []
     # converts the image, a PIL image, into a PyTorch Tensor
     transforms.append(ToTensor())
-    transforms.append(Resize(target_size))
+    # transforms.append(Resize(target_size))
     if train:
         # during training, randomly flip the training images
         # and ground-truth for data augmentation

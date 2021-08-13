@@ -145,6 +145,8 @@ class Runner:
                 boxes = predictions[0]['boxes'].cpu().detach()
                 scores = predictions[0]['scores'].cpu().detach()
                 if len(boxes) > 0:
+                    boxes[:, [0, 2]] = boxes[:, [0, 2]] * new_width / old_width
+                    boxes[:, [1, 3]] = boxes[:, [1, 3]] * new_height / old_height
                     for j, box in enumerate(boxes):
                         xmin = box[0].item()
                         ymin = box[1].item()
