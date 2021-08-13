@@ -134,12 +134,9 @@ class Runner:
         PATH = f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth"
         self.model.load_state_dict(torch.load(PATH))
         results = []
-        for idx, img in self.data_loaders['test']:
-            print(idx)
-            print(img)
-            #print(sample)
-            #idx = sample['idx']
-            #img = sample['img']
+        for index, image in self.data_loaders['test']:
+            idx = index[0]
+            img = image[0]
             images = [img.to(self.device)]
             predictions = self.model(images)
             boxes = predictions[0]['boxes']
