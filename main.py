@@ -133,6 +133,7 @@ class Runner:
     def predict(self):
         PATH = f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth"
         self.model.load_state_dict(torch.load(PATH))
+        self.model.to(self.device)
         self.model.eval()
         results = []
         for images, indexes in self.data_loaders['test']:
