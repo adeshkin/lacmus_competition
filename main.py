@@ -139,13 +139,14 @@ class Runner:
             predictions = self.model(images)
             boxes = predictions[0]['boxes']
             scores = predictions[0]['scores']
-            for j, box in enumerate(boxes):
-                xmin = box[0]
-                ymin = box[1]
-                xmax = box[2]
-                ymax = box[3]
-                score = scores[j]
-                results.append([idx, xmin, ymin, xmax, ymax, score])
+            if len(boxes) > 0:
+                for j, box in enumerate(boxes):
+                    xmin = box[0]
+                    ymin = box[1]
+                    xmax = box[2]
+                    ymax = box[3]
+                    score = scores[j]
+                    results.append([idx, xmin, ymin, xmax, ymax, score])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
         df.to_csv(f"{self.submissions_dir}/{self.params['submission_filename']}.csv", index=False)
