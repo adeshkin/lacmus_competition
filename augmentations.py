@@ -41,11 +41,11 @@ class Resize(object):
         old_height, old_width = image.shape[-2:]
         image = F.resize(image, self.target_size, interpolation=F.InterpolationMode.BILINEAR)
         new_height, new_width = image.shape[-2:]
-        bbox = target["boxes"]
-        if bbox.shape[0] > 0:
-            bbox[:, [0, 2]] = bbox[:, [0, 2]] * new_width / old_width
-            bbox[:, [1, 3]] = bbox[:, [1, 3]] * new_height / old_height
-            target["boxes"] = bbox
+        #bbox = target["boxes"]
+        #if bbox.shape[0] > 0:
+        #    bbox[:, [0, 2]] = bbox[:, [0, 2]] * new_width / old_width
+        #    bbox[:, [1, 3]] = bbox[:, [1, 3]] * new_height / old_height
+        #    target["boxes"] = bbox
 
         return image, target
 
