@@ -188,7 +188,7 @@ class Runner:
                 # wandb.log({f"epoch = {epoch}": [wandb.Image(log['image'], caption=f"({log['dy']},{log['dx']})")]})
 
         self.model.load_state_dict(best_model_wts)
-        torch.save(self.model.state_dict(), f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth")
+        torch.save(self.model.state_dict(), f"{self.checkpoints_dir}/resnet50_FRCNN_no_resize.pth")
         self.predict()
 
 
