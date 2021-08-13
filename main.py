@@ -1,4 +1,5 @@
 import yaml
+import pandas as pd
 import torch
 import torchvision
 import wandb
@@ -118,6 +119,24 @@ class Runner:
         log = None
 
         return epoch_metrics, log
+
+    def predict(self):
+        results = []
+        for idx in range(3):
+            x = [torch.rand(3, 300, 400)]
+            predictions = self.model(x)
+            boxes = predictions[0]['boxes']
+            scores = predictions[0]['scores']
+            for j, box in enumerate(boxes):
+                xmin = box[0]
+                ymin = box[1]
+                xmax = box[2]
+                ymax = box[3]
+                score = scores[j]
+                results.append([idx, xmin, ymin, xmax, ymax, score])
+
+        df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
+        df.to_csv(f"{self.params['submissions_dir']}/{self.params['submission_filename']}.csv", index=False)
 
     def run(self):
         wandb.init(project=self.params['project_name'], config=self.params)
