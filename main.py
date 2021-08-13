@@ -166,11 +166,13 @@ class Runner:
 
         for epoch in range(self.num_epochs):
             train_metrics = self.train()
+            lr = self.lr_scheduler.get_last_lr()
             self.lr_scheduler.step()
             val_metrics, log = self.eval()
 
             logs = {'train': train_metrics,
-                    'val': val_metrics}
+                    'val': val_metrics,
+                    'lr': lr}
             wandb.log(logs, step=epoch)
 
             val_ap_iou0_5 = val_metrics['ap_iou0.5']
