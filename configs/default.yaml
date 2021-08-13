@@ -1,5 +1,6 @@
 project_name: 'lacmus_competition'
 data_root: '/home/cds-k/Desktop/lacmus/data_lacmus/TrainingData'
+test_root: '/home/cds-k/Desktop/lacmus/data_lacmus/EmptyPart'
 train_mode: 'train_non_empty' #train
 val_mode: 'valtest' #valtest test
 target_h: 900

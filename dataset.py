@@ -8,6 +8,28 @@ import xml.etree.ElementTree as ET
 import collections
 
 
+class ImageFolderWithPaths(torch.utils.data.Dataset):
+    def __init__(self, root, transforms=None):
+        self.paths = [f'{root}/{path}' for path in os.listdir(root) if ".jpg" in path]
+        self.transforms = transforms
+
+    def __len__(self):
+        return len(self.paths)
+
+    def __getitem__(self, idx):
+        sample = dict()
+        name = self.paths[idx][:-4]  # no extension
+        sample['idx'] = name
+
+        img = Image.open(self.images[idx]).convert('RGB')
+
+        if self.transforms is not None:
+            img = self.transforms(img)
+        sample['img'] = img
+
+        return sample
+
+
 class LADDDataSET(torchvision.datasets.VisionDataset):
     def __init__(
             self,

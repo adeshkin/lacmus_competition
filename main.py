@@ -7,7 +7,7 @@ import numpy as np
 import os
 import copy
 from tqdm import tqdm
-from dataset import LADDDataSET
+from dataset import LADDDataSET, ImageFolderWithPaths
 from augmentations import get_transform
 from metrics import evaluate_res
 
@@ -24,7 +24,8 @@ class Runner:
     def __init__(self, params):
         self.params = params
         voc_root = params['data_root']
-        
+        test_root = params['test_root']
+
         target_size = (params['target_h'], params['target_w'])
 
         dataset_train = LADDDataSET(voc_root,
@@ -34,17 +35,25 @@ class Runner:
                                   params['val_mode'],
                                   get_transform(train=False, target_size=target_size))
 
+        dataset_test = ImageFolderWithPaths(test_root, get_transform(train=False, target_size=target_size))
+
         self.data_loaders = {'train': torch.utils.data.DataLoader(dataset_train,
                                                                   batch_size=params['batch_size'],
                                                                   shuffle=True,
-                                                                  num_workers=4,
+                                                                  num_workers=params['batch_size'],
                                                                   collate_fn=collate_fn),
 
                              'val': torch.utils.data.DataLoader(dataset_val,
                                                                 batch_size=params['batch_size'],
                                                                 shuffle=False,
-                                                                num_workers=4,
-                                                                collate_fn=collate_fn)}
+                                                                num_workers=params['batch_size'],
+                                                                collate_fn=collate_fn),
+
+                             'test': torch.utils.data.DataLoader(dataset_test,
+                                                                 batch_size=1,
+                                                                 shuffle=False,
+                                                                 num_workers=1,
+                                                                 collate_fn=collate_fn)}
 
         self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False,
                                                                           num_classes=2,
@@ -122,9 +131,11 @@ class Runner:
 
     def predict(self):
         results = []
-        for idx in range(3):
-            x = [torch.rand(3, 300, 400)]
-            predictions = self.model(x)
+        for sample in self.data_loaders['test']:
+            idx = sample['idx']
+            img = sample['img']
+            images = [img.to(self.device)]
+            predictions = self.model(images)
             boxes = predictions[0]['boxes']
             scores = predictions[0]['scores']
             for j, box in enumerate(boxes):
