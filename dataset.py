@@ -21,7 +21,7 @@ class ImageFolderWithPaths(torch.utils.data.Dataset):
         name = self.paths[idx][:-4]  # no extension
         sample['idx'] = name
 
-        img = Image.open(self.images[idx]).convert('RGB')
+        img = Image.open(self.paths[idx]).convert('RGB')
 
         if self.transforms is not None:
             img = self.transforms(img)
