@@ -62,7 +62,7 @@ class Runner:
                                                                           max_size=target_size[1],
                                                                           trainable_backbone_layers=0)
 
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
         self.optimizer = torch.optim.SGD(self.model.parameters(),
                                          lr=params['lr'],
@@ -177,6 +177,7 @@ class Runner:
 
         self.model.load_state_dict(best_model_wts)
         torch.save(self.model.state_dict(), f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth")
+        self.predict()
 
 
 if __name__ == '__main__':

@@ -75,10 +75,9 @@ class LADDDataSET(torchvision.datasets.VisionDataset):
             bb = l['bndbox']
             boxes.append([int(bb['xmin']), int(bb['ymin']), int(bb['xmax']), int(bb['ymax'])])
 
-        target = {}
-        target["boxes"] = torch.as_tensor(boxes, dtype=torch.float32)         # there is only one class            
-        target["labels"] = torch.ones((num_objs,), dtype=torch.int64)
-        
+        target = {"boxes": torch.as_tensor(boxes, dtype=torch.float32),
+                  "labels": torch.ones((num_objs,), dtype=torch.int64)}
+
         if self.transforms is not None:
             img, target = self.transforms(img, target)
 
