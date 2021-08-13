@@ -131,6 +131,8 @@ class Runner:
         return epoch_metrics, log
 
     def predict(self):
+        PATH = f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth"
+        self.model.load_state_dict(torch.load(PATH))
         results = []
         for sample in self.data_loaders['test']:
             idx = sample['idx']
@@ -188,4 +190,5 @@ if __name__ == '__main__':
         params = yaml.load(file, yaml.Loader)
 
     runner = Runner(params)
-    runner.run()
+    # runner.run()
+    runner.predict()
