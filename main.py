@@ -135,7 +135,9 @@ class Runner:
         self.model.load_state_dict(torch.load(PATH))
         results = []
         for indexes, images in self.data_loaders['test']:
+            print(indexes)
             idx = indexes[0].split('/')[-1]
+
             images = list(img.to(self.device) for img in images)
             predictions = self.model(images)
             boxes = predictions[0]['boxes']
