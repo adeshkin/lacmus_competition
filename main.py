@@ -141,10 +141,9 @@ class Runner:
                 idx = indexes[0].split('/')[-1]
 
                 images = list(img.to(self.device) for img in images_)
-                print(images[0].shape)
                 predictions = self.model(images)
-                boxes = predictions[0]['boxes']
-                scores = predictions[0]['scores']
+                boxes = predictions[0]['boxes'].cpu().detach()
+                scores = predictions[0]['scores'].cpu().detach()
                 if len(boxes) > 0:
                     for j, box in enumerate(boxes):
                         xmin = box[0]
