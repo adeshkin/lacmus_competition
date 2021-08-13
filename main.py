@@ -75,6 +75,7 @@ class Runner:
 
         self.num_epochs = params['num_epochs']
         self.checkpoints_dir = params['checkpoints_dir']
+        self.submissions_dir = self.params['submissions_dir']
 
     def train(self):
         self.model.train()
@@ -147,12 +148,13 @@ class Runner:
                 results.append([idx, xmin, ymin, xmax, ymax, score])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
-        df.to_csv(f"{self.params['submissions_dir']}/{self.params['submission_filename']}.csv", index=False)
+        df.to_csv(f"{self.submissions_dir}/{self.params['submission_filename']}.csv", index=False)
 
     def run(self):
         wandb.init(project=self.params['project_name'], config=self.params)
         np.random.seed(0)
         os.makedirs(self.checkpoints_dir, exist_ok=True)
+        os.makedirs(self.submissions_dir, exist_ok=True)
 
         best_model_wts = copy.deepcopy(self.model.state_dict())
         best_ap_iou0_5 = 1
