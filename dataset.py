@@ -27,7 +27,7 @@ class ImageFolderWithPaths(torch.utils.data.Dataset):
             img, target = self.transforms(img, target)
         sample['img'] = img
 
-        return sample
+        return img, name
 
 
 class LADDDataSET(torchvision.datasets.VisionDataset):
