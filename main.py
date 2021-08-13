@@ -146,11 +146,11 @@ class Runner:
                 scores = predictions[0]['scores'].cpu().detach()
                 if len(boxes) > 0:
                     for j, box in enumerate(boxes):
-                        xmin = box[0]
-                        ymin = box[1]
-                        xmax = box[2]
-                        ymax = box[3]
-                        score = scores[j]
+                        xmin = box[0].item()
+                        ymin = box[1].item()
+                        xmax = box[2].item()
+                        ymax = box[3].item()
+                        score = scores[j].item()
                         results.append([idx, xmin, ymin, xmax, ymax, score])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
