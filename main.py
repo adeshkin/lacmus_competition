@@ -136,22 +136,23 @@ class Runner:
         self.model.to(self.device)
         self.model.eval()
         results = []
-        for images_, indexes in tqdm(self.data_loaders['test']):
-            idx = indexes[0].split('/')[-1]
+        with torch.no_grad():
+            for images_, indexes in tqdm(self.data_loaders['test']):
+                idx = indexes[0].split('/')[-1]
 
-            images = list(img.to(self.device) for img in images_)
-            print(images[0].shape)
-            predictions = self.model(images)
-            boxes = predictions[0]['boxes']
-            scores = predictions[0]['scores']
-            if len(boxes) > 0:
-                for j, box in enumerate(boxes):
-                    xmin = box[0]
-                    ymin = box[1]
-                    xmax = box[2]
-                    ymax = box[3]
-                    score = scores[j]
-                    results.append([idx, xmin, ymin, xmax, ymax, score])
+                images = list(img.to(self.device) for img in images_)
+                print(images[0].shape)
+                predictions = self.model(images)
+                boxes = predictions[0]['boxes']
+                scores = predictions[0]['scores']
+                if len(boxes) > 0:
+                    for j, box in enumerate(boxes):
+                        xmin = box[0]
+                        ymin = box[1]
+                        xmax = box[2]
+                        ymax = box[3]
+                        score = scores[j]
+                        results.append([idx, xmin, ymin, xmax, ymax, score])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
         df.to_csv(f"{self.submissions_dir}/{self.params['submission_filename']}.csv", index=False)
