@@ -136,7 +136,7 @@ class Runner:
         self.model.to(self.device)
         self.model.eval()
         results = []
-        for images, indexes in self.data_loaders['test']:
+        for images, indexes in tqdm(self.data_loaders['test']):
             idx = indexes[0].split('/')[-1]
 
             images = list(img.to(self.device) for img in images)
