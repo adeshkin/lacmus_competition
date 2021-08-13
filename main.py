@@ -148,11 +148,11 @@ class Runner:
                     #boxes[:, [0, 2]] = boxes[:, [0, 2]] * new_width / old_width
                     #boxes[:, [1, 3]] = boxes[:, [1, 3]] * new_height / old_height
                     for j, box in enumerate(boxes):
-                        xmin = box[0].item()
-                        ymin = box[1].item()
-                        xmax = box[2].item()
-                        ymax = box[3].item()
-                        score = scores[j].item()
+                        xmin = int(box[0].item())
+                        ymin = int(box[1].item())
+                        xmax = int(box[2].item())
+                        ymax = int(box[3].item())
+                        score = float(scores[j].item())
                         results.append([idx, xmin, ymin, xmax, ymax, score])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
