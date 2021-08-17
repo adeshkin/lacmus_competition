@@ -7,6 +7,9 @@ import numpy as np
 import os
 import copy
 from tqdm import tqdm
+#import albumentations as A
+#from albumentations.pytorch import ToTensorV2
+
 from dataset import LADDDataSET, ImageFolderWithPaths
 from augmentations import get_transform
 from metrics import evaluate_res
@@ -23,19 +26,40 @@ def collate_fn(batch):
 class Runner:
     def __init__(self, params):
         self.params = params
-        voc_root = params['data_root']
-        test_root = params['test_root']
+        # train_augs = []
+        # if params['transforms']['train']:
+        # train_augs.append(A.HorizontalFlip(p=0.5))
+        # train_augs.append(A.RandomBrightnessContrast(p=0.3))
+        # train_augs.append(A.ShiftScaleRotate(p=0.5))
+        # train_augs.append(A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3))
+        # A.RandomSizedBBoxSafeCrop(width=448, height=336, erosion_rate=0.2)
+        # A.RandomRain(brightness_coefficient=0.9, drop_width=1, blur_value=5, p=1)
+        # train_augs.append(A.RandomSnow(brightness_coeff=2.5, snow_point_lower=0.3, snow_point_upper=0.5, p=0.3))
+        # train_augs.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 0.5), angle_lower=0.5, p=0.3))
 
-        target_size = (params['target_h'], params['target_w'])
+        # train_augs.append(ToTensorV2())
 
-        dataset_train = LADDDataSET(voc_root,
-                                    params['train_mode'],
-                                    get_transform(train=True, target_size=target_size))
-        dataset_val = LADDDataSET(voc_root,
-                                  params['val_mode'],
-                                  get_transform(train=False, target_size=target_size))
+        # val_augs = []
+        # val_augs.append(ToTensorV2())
 
-        dataset_test = ImageFolderWithPaths(test_root, get_transform(train=False, target_size=target_size))
+        # train_transform = A.Compose(train_augs,
+        # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
+
+        # val_transform = A.Compose(val_augs,
+        # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
+
+        train_transform = get_transform(train=True)
+        val_transform = get_transform(train=False)
+        dataset_train = LADDDataSET(params['data_root'],
+                                    params['split']['train'],
+                                    train_transform)
+
+        dataset_val = LADDDataSET(params['data_root'],
+                                  params['split']['val'],
+                                  val_transform)
+
+        dataset_test = ImageFolderWithPaths(params['test_root'],
+                                            val_transform)
 
         self.data_loaders = {'train': torch.utils.data.DataLoader(dataset_train,
                                                                   batch_size=params['batch_size'],
@@ -55,27 +79,28 @@ class Runner:
                                                                  num_workers=1,
                                                                  collate_fn=collate_fn)}
 
-        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=False,
+        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=params['model']['pretrained'],
                                                                           num_classes=2,
-                                                                          pretrained_backbone=True,
-                                                                          min_size=target_size[0],
-                                                                          max_size=target_size[1],
-                                                                          trainable_backbone_layers=0)
+                                                                          pretrained_backbone=params['model'][
+                                                                              'pretrained'],
+                                                                          min_size=params['model']['min_size'],
+                                                                          max_size=params['model']['min_size'],
+                                                                          trainable_backbone_layers=params['model'][
+                                                                              'trainable_backbone_layers'])
 
-        self.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(params['device'])
 
         self.optimizer = torch.optim.SGD(self.model.parameters(),
-                                         lr=params['lr'],
-                                         momentum=params['momentum'],
-                                         weight_decay=params['weight_decay'])
+                                         lr=params['optimizer']['lr'],
+                                         momentum=params['optimizer']['momentum'],
+                                         weight_decay=params['optimizer']['weight_decay'])
 
         self.lr_scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
-                                                            step_size=params['step_size'],
-                                                            gamma=params['gamma'])
+                                                            step_size=params['lr_scheduler']['step_size'],
+                                                            gamma=params['lr_scheduler']['gamma'])
 
-        self.num_epochs = params['num_epochs']
         self.checkpoints_dir = params['checkpoints_dir']
-        self.submissions_dir = self.params['submissions_dir']
+        self.submissions_dir = params['submissions_dir']
 
     def train(self):
         self.model.train()
@@ -104,11 +129,9 @@ class Runner:
         return epoch_metrics
 
     def eval(self):
-        self.model.eval()
-        epoch_metrics = dict()
-        inference_res = []
         cpu_device = torch.device("cpu")
-
+        inference_res = []
+        self.model.eval()
         with torch.no_grad():
             for images, targets in tqdm(self.data_loaders['val']):
                 images = list(img.to(self.device) for img in images)
@@ -118,35 +141,35 @@ class Runner:
                 res = targets, outputs
                 inference_res.append(res)
 
-        ap_iou0_5, f1_iou0_5 = evaluate_res(inference_res, iou_threshold=0.5, score_threshold=0.05)
-        ap_iou0_6, f1_iou0_6 = evaluate_res(inference_res, iou_threshold=0.6, score_threshold=0.05)
+        ap_iou0_5, f1_iou0_5 = evaluate_res(inference_res, iou_threshold=0.5,
+                                            score_threshold=self.params['score_threshold'])
+        ap_iou0_6, f1_iou0_6 = evaluate_res(inference_res, iou_threshold=0.6,
+                                            score_threshold=self.params['score_threshold'])
 
+        epoch_metrics = dict()
         epoch_metrics['ap_iou0.5'] = ap_iou0_5
         epoch_metrics['f1_iou0.5'] = f1_iou0_5
         epoch_metrics['ap_iou0.6'] = ap_iou0_6
         epoch_metrics['f1_iou0.6'] = f1_iou0_6
 
-        log = None
-
-        return epoch_metrics, log
+        return epoch_metrics
 
     def predict(self):
-        PATH = f"{self.checkpoints_dir}/resnet50_FRCNN_baseline.pth"
+        PATH = f"{self.checkpoints_dir}/{self.params['model']['filename']}.pth"
         self.model.load_state_dict(torch.load(PATH))
         self.model.to(self.device)
         self.model.eval()
         results = []
         with torch.no_grad():
-            for images_, indexes in tqdm(self.data_loaders['test']):
-                idx = indexes[0].split('/')[-1]
+            for images, indexes in tqdm(self.data_loaders['test']):
+                idx = indexes[0]
+                images = list(images[0].to(self.device))
 
-                images = list(img.to(self.device) for img in images_)
                 predictions = self.model(images)
                 boxes = predictions[0]['boxes'].cpu().detach()
                 scores = predictions[0]['scores'].cpu().detach()
+
                 if len(boxes) > 0:
-                    #boxes[:, [0, 2]] = boxes[:, [0, 2]] * new_width / old_width
-                    #boxes[:, [1, 3]] = boxes[:, [1, 3]] * new_height / old_height
                     for j, box in enumerate(boxes):
                         xmin = int(box[0].item())
                         ymin = int(box[1].item())
@@ -159,36 +182,36 @@ class Runner:
         df.to_csv(f"{self.submissions_dir}/{self.params['submission_filename']}.csv", index=False)
 
     def run(self):
+        random.seed(42)
+        np.random.seed(42)
+
         wandb.init(project=self.params['project_name'], config=self.params)
-        np.random.seed(0)
+
         os.makedirs(self.checkpoints_dir, exist_ok=True)
         os.makedirs(self.submissions_dir, exist_ok=True)
 
         best_model_wts = copy.deepcopy(self.model.state_dict())
-        best_ap_iou0_5 = 1
+        best_ap_iou0_5 = 0
 
         self.model = self.model.to(self.device)
-
-        for epoch in range(self.num_epochs):
+        for epoch in range(params['num_epochs']):
             train_metrics = self.train()
-            lr = self.lr_scheduler.get_last_lr()
             self.lr_scheduler.step()
-            val_metrics, log = self.eval()
+            val_metrics = self.eval()
 
             logs = {'train': train_metrics,
                     'val': val_metrics,
-                    'lr': lr}
+                    'lr': self.optimizer.param_groups[0]["lr"]}
+
             wandb.log(logs, step=epoch)
 
             val_ap_iou0_5 = val_metrics['ap_iou0.5']
-            if val_ap_iou0_5 < best_ap_iou0_5:
+            if val_ap_iou0_5 > best_ap_iou0_5:
                 best_ap_iou0_5 = val_ap_iou0_5
                 best_model_wts = copy.deepcopy(self.model.state_dict())
 
-                # wandb.log({f"epoch = {epoch}": [wandb.Image(log['image'], caption=f"({log['dy']},{log['dx']})")]})
-
         self.model.load_state_dict(best_model_wts)
-        torch.save(self.model.state_dict(), f"{self.checkpoints_dir}/resnet50_FRCNN_no_resize.pth")
+        torch.save(self.model.state_dict(), f"{self.checkpoints_dir}/{self.params['model_filename']}.pth")
         self.predict()
 
 
@@ -198,4 +221,4 @@ if __name__ == '__main__':
 
     runner = Runner(params)
     runner.run()
-    #runner.predict()
+
