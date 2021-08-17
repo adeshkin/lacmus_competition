@@ -178,10 +178,10 @@ class Runner:
                 scores = predictions[0]['scores'].cpu().detach()
 
                 scores_ = scores[scores >= self.params['score_threshold']]
-                if len(scores_) > 1:
+                if len(scores_) > 0:
                     threshold = self.params['score_threshold']
                 else:
-                    threshold = -1.0
+                    threshold = 0.0
 
                 if len(boxes) > 0:
                     # resize reverse
