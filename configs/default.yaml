@@ -10,31 +10,31 @@ split:
   val: 'valtest' #valtest test
 
 batch_size: 1
-num_epochs: 5
+num_epochs: 21
 device: 'cuda:0'
-score_threshold: 0.05
-submission_filename: 'resize'
-model_filename: 'resize'
+score_threshold: 0.2
+submission_filename: 'model_1050_1400_bs_1_ep_21_thr_0_2'
+model_filename: 'model_1050_1400_bs_1_ep_21_thr_0_2'
 
 transforms:
   resize:
-    h: 1500
-    w: 2000
+    h: 1050
+    w: 1400
 
 model:
   pretrained: false
   pretrained_backbone: true
-  min_size: 2250
-  max_size: 5472
+  min_size: 900
+  max_size: 1200
   trainable_backbone_layers: 0
 
 optimizer:
-  lr: 0.001
+  lr: 0.01
   momentum: 0.9
   weight_decay: 0.0005
 
 lr_scheduler:
-  step_size: 3
+  step_size: 5
   gamma: 0.1
 
 

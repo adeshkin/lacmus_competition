@@ -177,6 +177,12 @@ class Runner:
                 boxes = predictions[0]['boxes'].cpu().detach()
                 scores = predictions[0]['scores'].cpu().detach()
 
+                scores_ = scores[scores >= self.params['score_threshold']]
+                if len(scores_) > 1:
+                    threshold = self.params['score_threshold']
+                else:
+                    threshold = -1.0
+
                 if len(boxes) > 0:
                     # resize reverse
                     boxes[:, [0, 2]] = boxes[:, [0, 2]] * old_width / new_width
@@ -187,7 +193,10 @@ class Runner:
                         xmax = int(box[2].item())
                         ymax = int(box[3].item())
                         score = float(scores[j].item())
-                        results.append([idx, xmin, ymin, xmax, ymax, score])
+                        if score >= threshold:
+                            results.append([idx, xmin, ymin, xmax, ymax, score])
+                else:
+                    results.append([idx, 0, 0, 0, 0, 0.0])
 
         df = pd.DataFrame(results, columns=['id', 'xmin', 'ymin', 'xmax', 'ymax', 'score'])
         df.to_csv(f"{self.submissions_dir}/{self.params['submission_filename']}.csv", index=False)
@@ -231,6 +240,6 @@ if __name__ == '__main__':
         params = yaml.load(file, yaml.Loader)
 
     runner = Runner(params)
-    runner.run()
-    # runner.predict()
+    # runner.run()
+    runner.predict()
 
