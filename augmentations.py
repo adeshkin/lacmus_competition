@@ -41,20 +41,21 @@ class Resize(object):
         old_height, old_width = image.shape[-2:]
         image = F.resize(image, self.target_size, interpolation=F.InterpolationMode.BILINEAR)
         new_height, new_width = image.shape[-2:]
-        #bbox = target["boxes"]
-        #if bbox.shape[0] > 0:
-        #    bbox[:, [0, 2]] = bbox[:, [0, 2]] * new_width / old_width
-        #    bbox[:, [1, 3]] = bbox[:, [1, 3]] * new_height / old_height
-        #    target["boxes"] = bbox
+        bbox = target["boxes"]
+        if bbox.shape[0] > 0:
+            bbox[:, [0, 2]] = bbox[:, [0, 2]] * new_width / old_width
+            bbox[:, [1, 3]] = bbox[:, [1, 3]] * new_height / old_height
+            target["boxes"] = bbox
 
         return image, target
 
 
-def get_transform(train, target_size):
-    transforms = []
+def get_transform(train, target_size=None):
+    transforms = list()
     # converts the image, a PIL image, into a PyTorch Tensor
     transforms.append(ToTensor())
-    # transforms.append(Resize(target_size))
+    if target_size:
+        transforms.append(Resize(target_size))
     if train:
         # during training, randomly flip the training images
         # and ground-truth for data augmentation

@@ -7,6 +7,7 @@ import numpy as np
 import os
 import copy
 from tqdm import tqdm
+import random
 #import albumentations as A
 #from albumentations.pytorch import ToTensorV2
 
@@ -48,8 +49,10 @@ class Runner:
         # val_transform = A.Compose(val_augs,
         # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
 
-        train_transform = get_transform(train=True)
-        val_transform = get_transform(train=False)
+        train_transform = get_transform(train=True)#, target_size=(params['transforms']['resize']['h'],
+                                                   #              params['transforms']['resize']['w']))
+        val_transform = get_transform(train=False)#, target_size=(params['transforms']['resize']['h'],
+                                                  #              params['transforms']['resize']['w']))
         dataset_train = LADDDataSET(params['data_root'],
                                     params['split']['train'],
                                     train_transform)
@@ -82,9 +85,9 @@ class Runner:
         self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=params['model']['pretrained'],
                                                                           num_classes=2,
                                                                           pretrained_backbone=params['model'][
-                                                                              'pretrained'],
+                                                                              'pretrained_backbone'],
                                                                           min_size=params['model']['min_size'],
-                                                                          max_size=params['model']['min_size'],
+                                                                          max_size=params['model']['max_size'],
                                                                           trainable_backbone_layers=params['model'][
                                                                               'trainable_backbone_layers'])
 
