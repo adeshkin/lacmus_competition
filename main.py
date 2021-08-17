@@ -240,6 +240,6 @@ if __name__ == '__main__':
         params = yaml.load(file, yaml.Loader)
 
     runner = Runner(params)
-    # runner.run()
-    runner.predict()
+    runner.run()
+    # runner.predict()
 

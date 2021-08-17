@@ -12,9 +12,9 @@ split:
 batch_size: 1
 num_epochs: 21
 device: 'cuda:0'
-score_threshold: 0.2
-submission_filename: 'model_1050_1400_bs_1_ep_21_thr_0_2'
-model_filename: 'model_1050_1400_bs_1_ep_21_thr_0_2'
+score_threshold: 0.05
+submission_filename: 'model_1050_1400_bs_1_ep_21_thr_0_05'
+model_filename: 'model_1050_1400_bs_1_ep_21_thr_0_05'
 
 transforms:
   resize:
