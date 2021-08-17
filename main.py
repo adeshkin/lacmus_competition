@@ -49,10 +49,10 @@ class Runner:
         # val_transform = A.Compose(val_augs,
         # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
 
-        train_transform = get_transform(train=True)#, target_size=(params['transforms']['resize']['h'],
-                                                   #              params['transforms']['resize']['w']))
-        val_transform = get_transform(train=False)#, target_size=(params['transforms']['resize']['h'],
-                                                  #              params['transforms']['resize']['w']))
+        train_transform = get_transform(train=True, target_size=(params['transforms']['resize']['h'],
+                                                                 params['transforms']['resize']['w']))
+        val_transform = get_transform(train=False, target_size=(params['transforms']['resize']['h'],
+                                                                params['transforms']['resize']['w']))
         dataset_train = LADDDataSET(params['data_root'],
                                     params['split']['train'],
                                     train_transform)
@@ -158,21 +158,29 @@ class Runner:
         return epoch_metrics
 
     def predict(self):
-        PATH = f"{self.checkpoints_dir}/{self.params['model']['filename']}.pth"
+        PATH = f"{self.checkpoints_dir}/{self.params['model_filename']}.pth"
         self.model.load_state_dict(torch.load(PATH))
         self.model.to(self.device)
         self.model.eval()
         results = []
         with torch.no_grad():
-            for images, indexes in tqdm(self.data_loaders['test']):
-                idx = indexes[0]
-                images = list(images[0].to(self.device))
+            for images, sample in tqdm(self.data_loaders['test']):
+                idx = sample[0]['name']
+                old_width = sample[0]['old_w']
+                old_height = sample[0]['old_h']
+                new_width = sample[0]['new_w']
+                new_height = sample[0]['new_h']
+
+                images = list(image.to(self.device) for image in images)
 
                 predictions = self.model(images)
                 boxes = predictions[0]['boxes'].cpu().detach()
                 scores = predictions[0]['scores'].cpu().detach()
 
                 if len(boxes) > 0:
+                    # resize reverse
+                    boxes[:, [0, 2]] = boxes[:, [0, 2]] * old_width / new_width
+                    boxes[:, [1, 3]] = boxes[:, [1, 3]] * old_height / new_height
                     for j, box in enumerate(boxes):
                         xmin = int(box[0].item())
                         ymin = int(box[1].item())
@@ -224,4 +232,5 @@ if __name__ == '__main__':
 
     runner = Runner(params)
     runner.run()
+    # runner.predict()
 

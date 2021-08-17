@@ -17,14 +17,23 @@ class ImageFolderWithPaths(torch.utils.data.Dataset):
         return len(self.paths)
 
     def __getitem__(self, idx):
-        name = self.paths[idx][:-4]  # no extension
+        name = self.paths[idx].split('/')[-1][:-4]  # no extension
 
         img = Image.open(self.paths[idx]).convert('RGB')
+        w, h = img.size
         target = None
         if self.transforms is not None:
-            img, target = self.transforms(img, target)
+            image, target = self.transforms(img, target)
 
-        return img, name
+        sample = dict()
+        sample['name'] = name
+        sample['old_w'] = w
+        sample['old_h'] = h
+        new_height, new_width = image.shape[-2:]
+        sample['new_w'] = new_width
+        sample['new_h'] = new_height
+
+        return image, sample
 
 
 class LADDDataSET(torchvision.datasets.VisionDataset):

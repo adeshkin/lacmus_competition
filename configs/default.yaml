@@ -1,7 +1,7 @@
 project_name: 'lacmus_competition'
 
-data_root: '/home/adeshkin/Desktop/data_lacmus/TrainingData'
-test_root: '/home/adeshkin/Desktop/data_lacmus/EmptyPart'
+data_root: '/home/cds-k/Desktop/lacmus/data_lacmus/TrainingData'
+test_root: '/home/cds-k/Desktop/lacmus/data_lacmus/EmptyPart'
 checkpoints_dir: './checkpoints'
 submissions_dir: './submissions'
 
@@ -10,10 +10,11 @@ split:
   val: 'valtest' #valtest test
 
 batch_size: 1
-num_epochs: 15
+num_epochs: 5
 device: 'cuda:0'
 score_threshold: 0.05
-submission_filename: 'no_resize'
+submission_filename: 'resize'
+model_filename: 'resize'
 
 transforms:
   resize:
@@ -21,15 +22,14 @@ transforms:
     w: 2000
 
 model:
-  filename: ''
   pretrained: false
   pretrained_backbone: true
-  min_size:
-  max_size:
+  min_size: 2250
+  max_size: 5472
   trainable_backbone_layers: 0
 
 optimizer:
-  lr: 0.01
+  lr: 0.001
   momentum: 0.9
   weight_decay: 0.0005
 
