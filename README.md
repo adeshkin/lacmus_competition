@@ -37,4 +37,4 @@ python main.py
 ```
 
 Log example:
-![header](/home/cds-k/Desktop/lacmus_competition/images/graphic_val_ap_iou_0_5.png)
+![](./images/graphic_val_ap_iou_0_5.png)
