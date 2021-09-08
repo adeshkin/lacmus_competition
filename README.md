@@ -1,7 +1,7 @@
 # 1st Lacmus Computer Vision Competition: 6th place solution
 
 #### TASK - to detect lost people in aerial images
-#### Detection:
+#### 2-d detection:
 ![header](images/example.png)
 
 - [1st Lacmus Computer Vision Competition](https://ods.ai/competitions/lacmus-cvc-soc2021)
