@@ -8,8 +8,6 @@ import os
 import copy
 from tqdm import tqdm
 import random
-#import albumentations as A
-#from albumentations.pytorch import ToTensorV2
 
 from dataset import LADDDataSET, ImageFolderWithPaths
 from augmentations import get_transform
@@ -27,32 +25,9 @@ def collate_fn(batch):
 class Runner:
     def __init__(self, params):
         self.params = params
-        # train_augs = []
-        # if params['transforms']['train']:
-        # train_augs.append(A.HorizontalFlip(p=0.5))
-        # train_augs.append(A.RandomBrightnessContrast(p=0.3))
-        # train_augs.append(A.ShiftScaleRotate(p=0.5))
-        # train_augs.append(A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3))
-        # A.RandomSizedBBoxSafeCrop(width=448, height=336, erosion_rate=0.2)
-        # A.RandomRain(brightness_coefficient=0.9, drop_width=1, blur_value=5, p=1)
-        # train_augs.append(A.RandomSnow(brightness_coeff=2.5, snow_point_lower=0.3, snow_point_upper=0.5, p=0.3))
-        # train_augs.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 0.5), angle_lower=0.5, p=0.3))
 
-        # train_augs.append(ToTensorV2())
-
-        # val_augs = []
-        # val_augs.append(ToTensorV2())
-
-        # train_transform = A.Compose(train_augs,
-        # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
-
-        # val_transform = A.Compose(val_augs,
-        # bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
-
-        train_transform = get_transform(train=True, target_size=(params['transforms']['resize']['h'],
-                                                                 params['transforms']['resize']['w']))
-        val_transform = get_transform(train=False, target_size=(params['transforms']['resize']['h'],
-                                                                params['transforms']['resize']['w']))
+        train_transform = get_transform(train=True)
+        val_transform = get_transform(train=False)
         dataset_train = LADDDataSET(params['data_root'],
                                     params['split']['train'],
                                     train_transform)
