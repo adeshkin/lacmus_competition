@@ -37,4 +37,4 @@ python main.py
 ```
 
 Log example:
-![width=0.5\textwidth](./images/graphic_val_ap_iou_0_5.png)
+![](./images/graphic_val_ap_iou_0_5.png)
