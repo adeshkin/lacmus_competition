@@ -12,6 +12,10 @@
 Download
 [dataset](https://ods.ai/competitions/lacmus-cvc-soc2021/data)
 
+Data analysis:
+- `EDA.ipynb`
+- `apply_augmenatations.ipynb`
+
 ## Solution:
 
 * Fasterrcnn
