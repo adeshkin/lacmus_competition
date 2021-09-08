@@ -37,4 +37,4 @@ python main.py
 ```
 
 Log example:
-![](./images/graphic_val_ap_iou_0_5.png)
+![](./images/graphic_val_ap_iou_0_5.png=100x120)
